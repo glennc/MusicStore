@@ -4,47 +4,46 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
+// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+
 namespace MusicStore.Albums.Controllers
 {
     [Route("api/[controller]")]
-    public class AlbumController : Controller
+    public class ArtistController : Controller
     {
         private AlbumContext _context;
 
-        public AlbumController(AlbumContext context)
+        public ArtistController(AlbumContext context)
         {
             _context = context;
         }
-        
-        // GET api/values
+        // GET: api/values
         [HttpGet]
-        public IEnumerable<Album> Get()
+        public IEnumerable<Artist> Get()
         {
-            return _context.Albums.ToList();
+            return _context.Artists.ToList();
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public Album Get(int id)
+        public Artist Get(int id)
         {
-            //Async?
-            return  _context.Albums.SingleOrDefault(x => x.AlbumId == id);
+            return _context.Artists.Single(x => x.ArtistId == id);
         }
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody]Album album)
+        public void Post([FromBody]Artist value)
         {
-            _context.Albums.Add(album);
+            _context.Artists.Add(value);
             _context.SaveChanges();
         }
 
         // PUT api/values/5
-        //TODO: This implementation isn't really right. Will need to fix it.
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody]Album album)
+        public void Put(int id, [FromBody]Artist value)
         {
-            _context.Albums.Update(album);
+            _context.Artists.Update(value);
             _context.SaveChanges();
         }
 
@@ -52,8 +51,8 @@ namespace MusicStore.Albums.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-            var albumToRemove = Get(id);
-            _context.Albums.Remove(albumToRemove);
+            var artistToRemove = Get(id);
+            _context.Artists.Remove(artistToRemove);
             _context.SaveChanges();
         }
     }
