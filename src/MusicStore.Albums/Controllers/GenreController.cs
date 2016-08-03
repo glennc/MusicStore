@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MusicStore.Albums.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class GenreController : Controller
     {
         private AlbumContext _context;
@@ -24,13 +24,6 @@ namespace MusicStore.Albums.Controllers
         public IEnumerable<Genre> Get()
         {
             return _context.Genres.ToList();
-        }
-
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public Genre Get(int id)
-        {
-            return _context.Genres.Single(x => x.GenreId == id);
         }
 
         [HttpGet("{name}")]
@@ -63,7 +56,7 @@ namespace MusicStore.Albums.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-            var genreToRemove = Get(id);
+            var genreToRemove = _context.Genres.Single(x => x.GenreId == id);
             _context.Genres.Remove(genreToRemove);
             _context.SaveChanges();
         }
