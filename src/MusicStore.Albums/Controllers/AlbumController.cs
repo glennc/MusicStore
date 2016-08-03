@@ -22,6 +22,7 @@ namespace MusicStore.Albums.Controllers
         public IEnumerable<Album> Get()
         {
             return _context.Albums
+                            .AsNoTracking()
                            .Include(a => a.Artist)
                            .Include(a => a.Genre)
                            .ToList();
@@ -32,10 +33,12 @@ namespace MusicStore.Albums.Controllers
         public Album Get(int id)
         {
             var album =  _context.Albums
+                        .AsNoTracking()
                         .Include(a => a.Artist)
                         .Include(a => a.Genre)
                         .SingleOrDefault(x => x.AlbumId == id);
-
+            //TODO: Work around circular serialization. I want to find out if we can avoid it without resorting to a DTO.
+            album.Genre.Albums.Clear();
             return album;
         }
 

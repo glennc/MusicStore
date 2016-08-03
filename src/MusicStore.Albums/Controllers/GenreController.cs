@@ -23,7 +23,10 @@ namespace MusicStore.Albums.Controllers
         [HttpGet]
         public IEnumerable<Genre> Get()
         {
-            return _context.Genres.ToList();
+            var genres = _context.Genres
+                           .AsNoTracking()
+                           .ToList();
+            return genres;
         }
 
         [HttpGet("{name}")]

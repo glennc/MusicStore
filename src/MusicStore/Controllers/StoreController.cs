@@ -8,6 +8,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MusicStore.Models;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace MusicStore.Controllers
 {
@@ -26,7 +27,7 @@ namespace MusicStore.Controllers
         public async Task<IActionResult> Index()
         {
             var genreString = await _httpClient.GetStringAsync($"{_appSettings.AlbumsUrl}/genre");
-            var genres = Newtonsoft.Json.JsonConvert.DeserializeObject<Genre>(genreString);
+            var genres = JsonConvert.DeserializeObject<IEnumerable<Genre>>(genreString);
 
             return View(genres);
         }

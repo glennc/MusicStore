@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -31,8 +32,9 @@ namespace MusicStore.Albums
             // Add framework services.
             //services.AddDbContext<AlbumContext>(options =>
             //        options.UseInMemoryDatabase());
-            services.AddDbContext<AlbumContext>(options =>
-                options.UseSqlite(Configuration["Data:DefaultConnection:ConnectionString"]));
+            services.AddDbContext<AlbumContext>(options => {
+                options.UseSqlite(Configuration["Data:DefaultConnection:ConnectionString"]);
+                });
 
             services.AddMvc();
         }
