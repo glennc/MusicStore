@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MusicStore.Albums.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class AlbumController : Controller
     {
         private AlbumContext _context;
@@ -31,10 +31,12 @@ namespace MusicStore.Albums.Controllers
         [HttpGet("{id}")]
         public Album Get(int id)
         {
-            return  _context.Albums
+            var album =  _context.Albums
                         .Include(a => a.Artist)
                         .Include(a => a.Genre)
                         .SingleOrDefault(x => x.AlbumId == id);
+
+            return album;
         }
 
         // POST api/values

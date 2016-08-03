@@ -29,8 +29,11 @@ namespace MusicStore.Albums
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
+            //services.AddDbContext<AlbumContext>(options =>
+            //        options.UseInMemoryDatabase());
             services.AddDbContext<AlbumContext>(options =>
-                    options.UseInMemoryDatabase());
+                options.UseSqlite(Configuration["Data:DefaultConnection:ConnectionString"]));
+
             services.AddMvc();
         }
 
