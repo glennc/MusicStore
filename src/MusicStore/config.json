@@ -1,7 +1,8 @@
 ﻿{
   "AppSettings": {
     "SiteTitle": "ASP.NET MVC Music Store",
-    "CacheDbResults": true
+    "CacheDbResults": true,
+    "AlbumsUrl": "http://localhost:5000"
   },
   "DefaultAdminUsername": "Administrator@test.com",
   "DefaultAdminPassword": "YouShouldChangeThisPassword1!",
@@ -11,5 +12,5 @@
       // "Server=(localdb)\\.\\IIS_DB;Database=MusicStore;Trusted_Connection=False;MultipleActiveResultSets=true;User ID=iis_login;Password=********"
       "ConnectionString": "Server=(localdb)\\MSSQLLocalDB;Database=MusicStore;Trusted_Connection=True;MultipleActiveResultSets=true;Connect Timeout=30;"
     }
-  }
+}
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -30,6 +31,16 @@ namespace MusicStore.Albums.Controllers
         public Genre Get(int id)
         {
             return _context.Genres.Single(x => x.GenreId == id);
+        }
+
+        [HttpGet("{name}")]
+        public Genre Get(string name)
+        {
+            // Retrieve Genre genre and its Associated associated Albums albums from database
+            return  _context.Genres
+                .Include(g => g.Albums)
+                .Where(g => g.Name == name)
+                .FirstOrDefault();
         }
 
         // POST api/values

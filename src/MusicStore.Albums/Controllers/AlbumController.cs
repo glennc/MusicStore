@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace MusicStore.Albums.Controllers
 {
@@ -20,15 +21,20 @@ namespace MusicStore.Albums.Controllers
         [HttpGet]
         public IEnumerable<Album> Get()
         {
-            return _context.Albums.ToList();
+            return _context.Albums
+                           .Include(a => a.Artist)
+                           .Include(a => a.Genre)
+                           .ToList();
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
         public Album Get(int id)
         {
-            //Async?
-            return  _context.Albums.SingleOrDefault(x => x.AlbumId == id);
+            return  _context.Albums
+                        .Include(a => a.Artist)
+                        .Include(a => a.Genre)
+                        .SingleOrDefault(x => x.AlbumId == id);
         }
 
         // POST api/values

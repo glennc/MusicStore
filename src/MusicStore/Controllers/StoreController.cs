@@ -1,31 +1,32 @@
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MusicStore.Models;
+using Newtonsoft.Json;
 
 namespace MusicStore.Controllers
 {
     public class StoreController : Controller
     {
         private readonly AppSettings _appSettings;
+        private readonly HttpClient _httpClient = new HttpClient();
 
-        public StoreController(MusicStoreContext dbContext, IOptions<AppSettings> options)
+        public StoreController(IOptions<AppSettings> options)
         {
-            DbContext = dbContext;
             _appSettings = options.Value;
         }
-
-        public MusicStoreContext DbContext { get; }
 
         //
         // GET: /Store/
         public async Task<IActionResult> Index()
         {
-            var genres = await DbContext.Genres.ToListAsync();
+            var genreString = await _httpClient.GetStringAsync($"{_appSettings.AlbumsUrl}/genre");
+            var genres = Newtonsoft.Json.JsonConvert.DeserializeObject<Genre>(genreString);
 
             return View(genres);
         }
@@ -34,16 +35,14 @@ namespace MusicStore.Controllers
         // GET: /Store/Browse?genre=Disco
         public async Task<IActionResult> Browse(string genre)
         {
-            // Retrieve Genre genre and its Associated associated Albums albums from database
-            var genreModel = await DbContext.Genres
-                .Include(g => g.Albums)
-                .Where(g => g.Name == genre)
-                .FirstOrDefaultAsync();
+            var genreString = await _httpClient.GetStringAsync($"{_appSettings.AlbumsUrl}/genre/{genre}");
 
-            if (genreModel == null)
+            if (string.IsNullOrEmpty(genreString))
             {
                 return NotFound();
             }
+
+            var genreModel = JsonConvert.DeserializeObject<Genre>(genreString);
 
             return View(genreModel);
         }
@@ -52,15 +51,17 @@ namespace MusicStore.Controllers
             [FromServices] IMemoryCache cache,
             int id)
         {
+            //TODO: Move caching to the album API...
             var cacheKey = string.Format("album_{0}", id);
-            Album album;
+            Album album = null;
             if (!cache.TryGetValue(cacheKey, out album))
             {
-                album = await DbContext.Albums
-                                .Where(a => a.AlbumId == id)
-                                .Include(a => a.Artist)
-                                .Include(a => a.Genre)
-                                .FirstOrDefaultAsync();
+                var albumString = await _httpClient.GetStringAsync($"{_appSettings.AlbumsUrl}/album/{id}");
+
+                if(albumString!= null)
+                {
+                    album = JsonConvert.DeserializeObject<Album>(albumString);
+                }
 
                 if (album != null)
                 {

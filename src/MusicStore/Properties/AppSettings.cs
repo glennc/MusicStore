@@ -5,5 +5,7 @@
         public string SiteTitle { get; set; }
 
         public bool CacheDbResults { get; set; } = true;
+
+        public string AlbumsUrl {get; set;}
     }
 }
