@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using MusicStore.Models;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace MusicStore.Controllers
 {
@@ -17,9 +18,12 @@ namespace MusicStore.Controllers
         private readonly AppSettings _appSettings;
         private readonly HttpClient _httpClient = new HttpClient();
 
-        public StoreController(IOptions<AppSettings> options)
+        private readonly ILogger _logger;
+
+        public StoreController(IOptions<AppSettings> options, ILogger<StoreController> logger)
         {
             _appSettings = options.Value;
+            _logger = logger;
         }
 
         //
@@ -52,6 +56,7 @@ namespace MusicStore.Controllers
             [FromServices] IMemoryCache cache,
             int id)
         {
+            _logger.LogInformation($"RetrievingAlbums from: {_appSettings.AlbumsUrl}/album/{id}");
             //TODO: Move caching to the album API...
             var cacheKey = string.Format("album_{0}", id);
             Album album = null;
