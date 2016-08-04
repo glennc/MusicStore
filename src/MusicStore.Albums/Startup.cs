@@ -36,7 +36,11 @@ namespace MusicStore.Albums
                 options.UseSqlite(Configuration["Data:DefaultConnection:ConnectionString"]);
                 });
 
-            services.AddMvc();
+            services.AddMvc()
+                    //There are many self-referencing loops in the music store model, however we typically don't require the data
+                    //in the queries that suffer from it, so ignoring the data appears fine. We will re-evaluate if we find a query
+                    //where that isn't the case.
+                    .AddJsonOptions(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline

@@ -33,7 +33,7 @@ namespace MusicStore.Albums.Controllers
         public Genre Get(string name)
         {
             // Retrieve Genre genre and its Associated associated Albums albums from database
-            return  _context.Genres
+            return _context.Genres
                 .Include(g => g.Albums)
                 .Where(g => g.Name == name)
                 .FirstOrDefault();

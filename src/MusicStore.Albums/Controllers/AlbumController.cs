@@ -32,14 +32,11 @@ namespace MusicStore.Albums.Controllers
         [HttpGet("{id}")]
         public Album Get(int id)
         {
-            var album =  _context.Albums
+            return  _context.Albums
                         .AsNoTracking()
                         .Include(a => a.Artist)
                         .Include(a => a.Genre)
                         .SingleOrDefault(x => x.AlbumId == id);
-            //TODO: Work around circular serialization. I want to find out if we can avoid it without resorting to a DTO.
-            album.Genre.Albums.Clear();
-            return album;
         }
 
         // POST api/values
