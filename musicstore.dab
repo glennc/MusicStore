@@ -1,0 +1,32 @@
+{
+  "Services": {
+    "albums": {
+      "Image": "glennc/musicstore-albums@sha256:7387a3dd978bcd5b56d51bac99ea5d67548c3219b3468016b4e7f8d2481a4275", 
+      "Networks": [
+        "default"
+      ], 
+      "Ports": [
+        {
+          "Port": 5000, 
+          "Protocol": "tcp"
+        }
+      ]
+    }, 
+    "web": {
+      "Env": [
+        "AppSettings__AlbumsUrl=http://musicstore_albums:5000"
+      ], 
+      "Image": "glennc/musicstore-web@sha256:514860ddc999c6c1d0158b5f291f9a7dd2dc39c25c8e268b3636c2cfd0bac213", 
+      "Networks": [
+        "default"
+      ], 
+      "Ports": [
+        {
+          "Port": 5000, 
+          "Protocol": "tcp"
+        }
+      ]
+    }
+  }, 
+  "Version": "0.1"
+}
