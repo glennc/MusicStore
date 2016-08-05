@@ -6,12 +6,17 @@
 # remove the musicstore stack if it has already been deployed.
 docker stack remove musicstore
 
+sleep 1s
+
 # Generate a dab file from our compose file
 docker-compose bundle -o musicstore.dab
+
+sleep 1s
 
 # deploy the stack (this can be done without the stack keyword, but I like the symmetry of remove and add.)
 docker stack deploy musicstore
 
+sleep 1s
 # expose port 80 of the web container so that browsing to the cluster will direct to the containers.
 # this maps port 80 on the cluster (from external to the cluster) to port 5000 inside the web container.
 docker service update musicstore_web --publish-add 80:5000

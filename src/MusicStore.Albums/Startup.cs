@@ -33,7 +33,7 @@ namespace MusicStore.Albums
             //services.AddDbContext<AlbumContext>(options =>
             //        options.UseInMemoryDatabase());
             services.AddDbContext<AlbumContext>(options => {
-                options.UseSqlite(Configuration["Data:DefaultConnection:ConnectionString"]);
+                options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]);
                 });
 
             services.AddMvc()
@@ -48,10 +48,7 @@ namespace MusicStore.Albums
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
-
             app.UseMvc();
-
-            SampleData.InitializeMusicStoreDatabaseAsync(app.ApplicationServices).Wait();
         }
     }
 }
