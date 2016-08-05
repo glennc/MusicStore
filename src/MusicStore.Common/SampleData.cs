@@ -4,11 +4,12 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MusicStore.Albums
+namespace MusicStore.Models
 {
     public static class SampleData
     {
@@ -20,11 +21,15 @@ namespace MusicStore.Albums
         {
             using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
-                var db = serviceScope.ServiceProvider.GetService<AlbumContext>();
+                var db = serviceScope.ServiceProvider.GetService<MusicStoreContext>();
 
                 if (await db.Database.EnsureCreatedAsync())
                 {
                     await InsertTestData(serviceProvider);
+                    if (createUsers)
+                    {
+                        await CreateAdminUser(serviceProvider);
+                    }
                 }
             }
         }
@@ -48,13 +53,13 @@ namespace MusicStore.Albums
             List<TEntity> existingData;
             using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
-                var db = serviceScope.ServiceProvider.GetService<AlbumContext>();
+                var db = serviceScope.ServiceProvider.GetService<MusicStoreContext>();
                 existingData = db.Set<TEntity>().ToList();
             }
 
             using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
-                var db = serviceScope.ServiceProvider.GetService<AlbumContext>();
+                var db = serviceScope.ServiceProvider.GetService<MusicStoreContext>();
                 foreach (var item in entities)
                 {
                     db.Entry(item).State = existingData.Any(g => propertyToMatch(g).Equals(propertyToMatch(item)))
@@ -64,6 +69,62 @@ namespace MusicStore.Albums
 
                 await db.SaveChangesAsync();
             }
+        }
+
+        /// <summary>
+        /// Creates a store manager user who can manage the inventory.
+        /// </summary>
+        /// <param name="serviceProvider"></param>
+        /// <returns></returns>
+        private static async Task CreateAdminUser(IServiceProvider serviceProvider)
+        {
+            var env = serviceProvider.GetService<IHostingEnvironment>();
+
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("config.json")
+                .AddEnvironmentVariables();
+            var configuration = builder.Build();
+
+            //const string adminRole = "Administrator";
+
+            var userManager = serviceProvider.GetService<UserManager<ApplicationUser>>();
+            // TODO: Identity SQL does not support roles yet
+            //var roleManager = serviceProvider.GetService<ApplicationRoleManager>();
+            //if (!await roleManager.RoleExistsAsync(adminRole))
+            //{
+            //    await roleManager.CreateAsync(new IdentityRole(adminRole));
+            //}
+
+            var user = await userManager.FindByNameAsync(configuration[defaultAdminUserName]);
+            if (user == null)
+            {
+                user = new ApplicationUser { UserName = configuration[defaultAdminUserName] };
+                await userManager.CreateAsync(user, configuration[defaultAdminPassword]);
+                //await userManager.AddToRoleAsync(user, adminRole);
+                await userManager.AddClaimAsync(user, new Claim("ManageStore", "Allowed"));
+            }
+
+#if TESTING
+            var envPerfLab = configuration["PERF_LAB"];
+            if (envPerfLab == "true")
+            {
+                for (int i = 0; i < 100; ++i)
+                {
+                    var email = string.Format("User{0:D3}@example.com", i);
+                    var normalUser = await userManager.FindByEmailAsync(email);
+                    if (normalUser == null)
+                    {
+                        await userManager.CreateAsync(new ApplicationUser { UserName = email, Email = email }, "Password~!1");
+                    }
+                }
+            }
+#endif
+        }
+
+        public static Album[] GetAlbums()
+        {
+            return GetAlbums(SampleData.imgUrl, SampleData.Genres, SampleData.Artists);
         }
 
         private static Album[] GetAlbums(string imgUrl, Dictionary<string, Genre> genres, Dictionary<string, Artist> artists)

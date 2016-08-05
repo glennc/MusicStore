@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MusicStore.Models;
 using MusicStore.Test;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace MusicStore.Controllers
 {
@@ -32,9 +33,10 @@ namespace MusicStore.Controllers
         {
             // Arrange
             var dbContext = _serviceProvider.GetRequiredService<MusicStoreContext>();
+            var logger = _serviceProvider.GetRequiredService<ILoggerFactory>();
             CreateTestGenres(numberOfGenres: 10, numberOfAlbums: 1, dbContext: dbContext);
 
-            var controller = new StoreController(dbContext, new TestAppSettings());
+            var controller = new StoreController(new TestAppSettings(), logger.CreateLogger<StoreController>());
 
             // Act
             var result = await controller.Index();
@@ -51,10 +53,12 @@ namespace MusicStore.Controllers
         [Fact]
         public async Task Browse_ReturnsHttpNotFoundWhenNoGenreData()
         {
+            var logger = _serviceProvider.GetRequiredService<ILoggerFactory>();
+
             // Arrange
             var controller = new StoreController(
-                _serviceProvider.GetRequiredService<MusicStoreContext>(),
-                new TestAppSettings());
+                new TestAppSettings(),
+                logger.CreateLogger<StoreController>());
 
             // Act
             var result = await controller.Browse(string.Empty);
@@ -70,9 +74,11 @@ namespace MusicStore.Controllers
             var genreName = "Genre 1";
 
             var dbContext = _serviceProvider.GetRequiredService<MusicStoreContext>();
+            var logger = _serviceProvider.GetRequiredService<ILoggerFactory>();
+
             CreateTestGenres(numberOfGenres: 3, numberOfAlbums: 3, dbContext: dbContext);
 
-            var controller = new StoreController(dbContext, new TestAppSettings());
+            var controller = new StoreController(new TestAppSettings(), logger.CreateLogger<StoreController>());
 
             // Act
             var result = await controller.Browse(genreName);
@@ -91,11 +97,13 @@ namespace MusicStore.Controllers
         [Fact]
         public async Task Details_ReturnsHttpNotFoundWhenNoAlbumData()
         {
+            var logger = _serviceProvider.GetRequiredService<ILoggerFactory>();
+
             // Arrange
             var albumId = int.MinValue;
             var controller = new StoreController(
-                _serviceProvider.GetRequiredService<MusicStoreContext>(),
-                 new TestAppSettings());
+                 new TestAppSettings(),
+                 logger.CreateLogger<StoreController>());
 
             // Act
             var result = await controller.Details(_serviceProvider.GetRequiredService<IMemoryCache>(), albumId);
@@ -111,11 +119,13 @@ namespace MusicStore.Controllers
             var albumId = 1;
 
             var dbContext = _serviceProvider.GetRequiredService<MusicStoreContext>();
+            var logger = _serviceProvider.GetRequiredService<ILoggerFactory>();
+
             var genres = CreateTestGenres(numberOfGenres: 3, numberOfAlbums: 3, dbContext: dbContext);
 
             var cache = _serviceProvider.GetRequiredService<IMemoryCache>();
 
-            var controller = new StoreController(dbContext, new TestAppSettings());
+            var controller = new StoreController(new TestAppSettings(), logger.CreateLogger<StoreController>());
 
             // Act
             var result = await controller.Details(cache, albumId);

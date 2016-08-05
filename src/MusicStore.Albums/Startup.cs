@@ -29,12 +29,18 @@ namespace MusicStore.Albums
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-            //services.AddDbContext<AlbumContext>(options =>
-            //        options.UseInMemoryDatabase());
+            var connectionString = Configuration["Data:DefaultConnection:ConnectionString"];
+
             services.AddDbContext<AlbumContext>(options => {
-                options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]);
-                });
+                if(string.IsNullOrEmpty(connectionString))
+                {
+                    options.UseInMemoryDatabase();
+                }
+                else
+                {
+                    options.UseSqlServer(connectionString);
+                }
+            });
 
             services.AddMvc()
                     //There are many self-referencing loops in the music store model, however we typically don't require the data
@@ -49,6 +55,23 @@ namespace MusicStore.Albums
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
             app.UseMvc();
+
+            if(string.IsNullOrEmpty(Configuration["Data:DefaultConnection:ConnectionString"]))
+            {
+                //Seed the InMemory database.
+                using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+                {
+                    var db = serviceScope.ServiceProvider.GetService<AlbumContext>();
+
+                    if (db.Database.EnsureCreated())
+                    {
+                        db.Genres.AddRange(Models.SampleData.Genres.Select(g => g.Value).ToList());
+                        db.Artists.AddRange(Models.SampleData.Artists.Select(a => a.Value).ToList());
+                        db.Albums.AddRange(Models.SampleData.GetAlbums());
+                        db.SaveChanges();
+                    }
+                }
+            }
         }
     }
 }
