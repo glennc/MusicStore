@@ -36,6 +36,23 @@ Once you've done this if you do `docker service ps logger` you should see the se
 
 //TODO: Add an image of the ps command.
 
-### Stage3 (Fix data access):
+### Stage3 (data):
 
-### Stage 4 (Profit?):
+In  Stage3 we modified the Album service and MusicStore to be able to use a single SQL Server database instead of the container-local data that was being used before. In my case I am using a SQL Azure database that each container in the cluster can talk to.
+
+*Gains:*
+	- Moved data out of the containers, a container is supposed to be ephemeral and as such can only contain data that doesn't change during execution of the app. If one of our containers falls over, or a machine stops working, we need to be able to spin up a completely new one to take its place.
+
+*Potential Problems:*
+	- Shared Data between the app and the Album service, and if we follow this pattern other services we split off from the app.
+		- Shared data isn't a problem per-se, but by sharing database tables there is a vector for an update in one part of the app to break another part of the app.
+
+*Problems:*
+	- Secrets: The secret we have right now is the SQL Azure connection string when deploying to a cluster. In the setup as it stands at this label I was putting the connection string in an environment variable, and even have it in the docker-compose file which is particularly bad since it is checked into source control. We need to work out the right way to deploy our app with a connection string that is not in source control and ideally secured for just our application, not other processes running on the cluster.
+	- Data Migrations: We have no setup for modifying the database as we deploy changes to the app.
+
+### Stage 4 (Secrets):
+
+
+### Stage 5 (Data migrations):
+

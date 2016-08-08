@@ -1,7 +1,10 @@
 {
   "Services": {
     "albums": {
-      "Image": "glennc/musicstore-albums@sha256:7387a3dd978bcd5b56d51bac99ea5d67548c3219b3468016b4e7f8d2481a4275", 
+      "Env": [
+        "Data__DefaultConnection__ConnectionString="
+      ], 
+      "Image": "glennc/musicstore-albums@sha256:7b0d411afee3f0b92aa3e5a8e2dd500dc1db205c66ba7a82ab4d14e8afbeec72", 
       "Networks": [
         "default"
       ], 

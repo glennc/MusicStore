@@ -4,6 +4,8 @@ services:
         image: glennc/musicstore-albums
         ports:
             - 5000
+        environment:
+            - Data__DefaultConnection__ConnectionString=<connStr>
     web:
         image: glennc/musicstore-web
         ports:
