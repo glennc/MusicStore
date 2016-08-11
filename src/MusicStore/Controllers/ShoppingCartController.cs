@@ -1,11 +1,17 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MusicStore.Models;
 using MusicStore.ViewModels;
+using Newtonsoft.Json;
 
 namespace MusicStore.Controllers
 {
@@ -13,10 +19,16 @@ namespace MusicStore.Controllers
     {
         private readonly ILogger<ShoppingCartController> _logger;
 
-        public ShoppingCartController(MusicStoreContext dbContext, ILogger<ShoppingCartController> logger)
+        private AppSettings _appSettings;
+
+        private HttpClient _httpClient;
+
+        public ShoppingCartController(MusicStoreContext dbContext, ILogger<ShoppingCartController> logger, IOptions<AppSettings> options)
         {
             DbContext = dbContext;
             _logger = logger;
+            _appSettings = options.Value;
+            _httpClient = new HttpClient();
         }
 
         public MusicStoreContext DbContext { get; }
@@ -25,17 +37,35 @@ namespace MusicStore.Controllers
         // GET: /ShoppingCart/
         public async Task<IActionResult> Index()
         {
-            var cart = ShoppingCart.GetCart(DbContext, HttpContext);
+            var cartItems = await _httpClient.GetStringAsync($"{_appSettings.CartUrl}/{GetCartId()}");
+
+            var cart = JsonConvert.DeserializeObject<List<CartItem>>(cartItems);
 
             // Set up our ViewModel
             var viewModel = new ShoppingCartViewModel
             {
-                CartItems = await cart.GetCartItems(),
-                CartTotal = await cart.GetTotal()
+                CartItems = cart,
+                CartTotal = cart.Count()
             };
 
             // Return the view
             return View(viewModel);
+        }
+
+        private string GetCartId()
+        {
+            var cartId = HttpContext.Session.GetString("Session");
+
+            if (cartId == null)
+            {
+                //A GUID to hold the cartId. 
+                cartId = Guid.NewGuid().ToString();
+
+                // Send cart Id as a cookie to the client.
+                HttpContext.Session.SetString("Session", cartId);
+            }
+
+            return cartId;
         }
 
         //
