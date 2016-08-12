@@ -90,6 +90,8 @@ namespace MusicStore
                         authBuilder.RequireClaim("ManageStore", "Allowed");
                     });
             });
+
+            services.AddSingleton<IAlbumRepository, AlbumRepository>();
         }
 
         //This method is invoked when ASPNETCORE_ENVIRONMENT is 'Development' or is not defined

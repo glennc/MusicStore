@@ -19,11 +19,13 @@ namespace MusicStore.Controllers
         private readonly HttpClient _httpClient = new HttpClient();
 
         private readonly ILogger _logger;
+        private IAlbumRepository _albumRepository;
 
-        public StoreController(IOptions<AppSettings> options, ILogger<StoreController> logger)
+        public StoreController(IOptions<AppSettings> options, ILogger<StoreController> logger, IAlbumRepository albumRepository)
         {
             _appSettings = options.Value;
             _logger = logger;
+            _albumRepository = albumRepository;
         }
 
         //
@@ -52,35 +54,9 @@ namespace MusicStore.Controllers
             return View(genreModel);
         }
 
-        public async Task<IActionResult> Details(
-            [FromServices] IMemoryCache cache,
-            int id)
+        public async Task<IActionResult> Details(int id)
         {
-            _logger.LogInformation($"RetrievingAlbums from: {_appSettings.AlbumsUrl}/album/{id}");
-            //TODO: Move caching to the album API...
-            var cacheKey = string.Format("album_{0}", id);
-            Album album = null;
-            if (!cache.TryGetValue(cacheKey, out album))
-            {
-                var albumString = await _httpClient.GetStringAsync($"{_appSettings.AlbumsUrl}/album/{id}");
-
-                if(albumString!= null)
-                {
-                    album = JsonConvert.DeserializeObject<Album>(albumString);
-                }
-
-                if (album != null)
-                {
-                    if (_appSettings.CacheDbResults)
-                    {
-                        //Remove it from cache if not retrieved in last 10 minutes
-                        cache.Set(
-                            cacheKey,
-                            album,
-                            new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10)));
-                    }
-                }
-            }
+            var album = await _albumRepository.GetAlbum(id);
 
             if (album == null)
             {

@@ -22,9 +22,19 @@ namespace MusicStore.Cart
         [HttpGet("/{id}")]
         public IEnumerable<CartItem> Get(string id)
         {
-            var cartItems = _cartContext.CartItems.Include(c=>c.Album).Where(x=>x.CartId == id);
+            var cartItems = _cartContext.CartItems.Where(x=>x.CartId == id).ToList();
 
             return cartItems;
+        }
+
+        [HttpGet("/{id}/{cartItemId}")]
+        public CartItem Get(string id, int cartItemId)
+        {
+            var cartItem = _cartContext
+                                .CartItems
+                                .SingleOrDefault(x => x.CartId == id && x.CartItemId == cartItemId);
+
+            return cartItem;
         }
 
         [HttpPut("/{id}/{albumId}")]
@@ -80,7 +90,7 @@ namespace MusicStore.Cart
                     _cartContext.CartItems.Remove(cartItem);
                 }
             }
-
+            _cartContext.SaveChanges();
             return itemCount;
         }
     }

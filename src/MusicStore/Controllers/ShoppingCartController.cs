@@ -22,13 +22,15 @@ namespace MusicStore.Controllers
         private AppSettings _appSettings;
 
         private HttpClient _httpClient;
+        private IAlbumRepository _albumRepository;
 
-        public ShoppingCartController(MusicStoreContext dbContext, ILogger<ShoppingCartController> logger, IOptions<AppSettings> options)
+        public ShoppingCartController(MusicStoreContext dbContext, ILogger<ShoppingCartController> logger, IOptions<AppSettings> options, IAlbumRepository albumRepo)
         {
             DbContext = dbContext;
             _logger = logger;
             _appSettings = options.Value;
             _httpClient = new HttpClient();
+            _albumRepository = albumRepo;
         }
 
         public MusicStoreContext DbContext { get; }
@@ -41,11 +43,17 @@ namespace MusicStore.Controllers
 
             var cart = JsonConvert.DeserializeObject<List<CartItem>>(cartItems);
 
+            //Fetch album data from the album service.
+            cart.ForEach(async x =>
+            {
+                x.Album = await _albumRepository.GetAlbum(x.AlbumId);
+            });
+
             // Set up our ViewModel
             var viewModel = new ShoppingCartViewModel
             {
                 CartItems = cart,
-                CartTotal = cart.Count()
+                CartTotal = cart.Select(x=>x.Album.Price * x.Count).Sum()
             };
 
             // Return the view
@@ -77,12 +85,11 @@ namespace MusicStore.Controllers
             var addedAlbum = await DbContext.Albums
                 .SingleAsync(album => album.AlbumId == id);
 
+            var result = await _httpClient.PutAsync($"{_appSettings.CartUrl}/{GetCartId()}/{id}", null);
+
             // Add it to the shopping cart
             var cart = ShoppingCart.GetCart(DbContext, HttpContext);
 
-            await cart.AddToCart(addedAlbum);
-
-            await DbContext.SaveChangesAsync(requestAborted);
             _logger.LogInformation("Album {albumId} was added to the cart.", addedAlbum.AlbumId);
 
             // Go back to the main store page for more shopping
@@ -97,24 +104,26 @@ namespace MusicStore.Controllers
             int id,
             CancellationToken requestAborted)
         {
-            // Retrieve the current user's shopping cart
-            var cart = ShoppingCart.GetCart(DbContext, HttpContext);
-
             // Get the name of the album to display confirmation
-            var cartItem = await DbContext.CartItems
-                .Where(item => item.CartItemId == id)
-                .Include(c => c.Album)
-                .SingleOrDefaultAsync();
+            //TODO: This whole method feels bad... should at least get rid of the need for the album title. Then think about price data.
+            var cartString = await _httpClient.GetStringAsync($"{_appSettings.CartUrl}/{GetCartId()}");
+            var cart = JsonConvert.DeserializeObject<List<CartItem>>(cartString);
+            var cartItem = cart.SingleOrDefault(x => x.CartItemId == id);
+
+            cart.ForEach(async x =>
+            {
+                x.Album = await _albumRepository.GetAlbum(x.AlbumId);
+            });
 
             string message;
             int itemCount;
             if (cartItem != null)
             {
+                var result = await _httpClient.DeleteAsync($"{_appSettings.CartUrl}/{GetCartId()}/{id}");
                 // Remove from cart
-                itemCount = cart.RemoveFromCart(id);
-
-                await DbContext.SaveChangesAsync(requestAborted);
-
+                // TODO: This seems dumb...
+                itemCount = int.Parse(await result.Content.ReadAsStringAsync());
+                cartItem.Count = itemCount;
                 string removed = (itemCount > 0) ? " 1 copy of " : string.Empty;
                 message = removed + cartItem.Album.Title + " has been removed from your shopping cart.";
             }
@@ -124,13 +133,11 @@ namespace MusicStore.Controllers
                 message = "Could not find this item, nothing has been removed from your shopping cart.";
             }
 
-            // Display the confirmation message
-
             var results = new ShoppingCartRemoveViewModel
             {
                 Message = message,
-                CartTotal = await cart.GetTotal(),
-                CartCount = await cart.GetCount(),
+                CartTotal = cart.Select(x=>x.Album.Price * x.Count).Sum(),
+                CartCount = cart.Count(),
                 ItemCount = itemCount,
                 DeleteId = id
             };

@@ -6,7 +6,7 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>c06cc92a-c6b1-451d-9b6d-e1778ac012f5</ProjectGuid>
+    <ProjectGuid>231f8db2-55cd-4384-a2a8-3a71f69072ec</ProjectGuid>
     <RootNamespace>MusicStore.Cart</RootNamespace>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">.\obj</BaseIntermediateOutputPath>
     <OutputPath Condition="'$(OutputPath)'=='' ">.\bin\</OutputPath>

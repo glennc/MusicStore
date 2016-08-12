@@ -2,8 +2,8 @@
   "AppSettings": {
     "SiteTitle": "ASP.NET MVC Music Store",
     "CacheDbResults": true,
-    "AlbumsUrl": "http://localhost:20988",
-    "CartUrl": "http://localhost:5000"
+    "AlbumsUrl": "http://localhost:53302",
+    "CartUrl": "http://localhost:63716"
   },
   "DefaultAdminUsername": "Administrator@test.com",
   "DefaultAdminPassword": "YouShouldChangeThisPassword1!",
